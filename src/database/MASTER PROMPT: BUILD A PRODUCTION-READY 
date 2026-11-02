@@ -1,0 +1,725 @@
+MASTER PROMPT: BUILD A PRODUCTION-READY MULTI-TENANT CRM SAAS
+You are a Senior Software Architect, SaaS Product Engineer, Database Architect, UI/UX Designer, Security Engineer, and Performance Engineer.
+Your task is to design and build a complete, professional, production-oriented, multi-tenant CRM SaaS platform that can be sold to multiple companies and configured separately for each customer.
+Do not build a basic tutorial CRM. Build a scalable business product with reusable modules, strong tenant isolation, configurable business workflows, a polished user interface, comprehensive documentation, and a foundation that can support future enterprise features.
+1. Mandatory technology stack
+Use ONLY JavaScript for the frontend and backend application code.
+Frontend
+* React.js
+* Vite
+* JavaScript and JSX only
+* React Router
+* Reusable React components
+* A consistent professional UI component system
+* Responsive CSS or Tailwind CSS
+* Axios or an equivalent API client
+* A suitable server-state management library where helpful
+* Charting library for dashboards and reports
+* Form validation and accessible form components
+Backend
+* Node.js
+* Express.js
+* JavaScript only
+* MySQL
+* Sequelize ORM
+* Sequelize migrations and seeders
+* REST API with versioning
+* MVC architecture with separate service and validation layers
+Optional infrastructure
+* Redis for caching, rate-limit coordination, or background jobs when configured
+* BullMQ for asynchronous jobs if Redis is enabled
+* S3-compatible object storage for attachments
+* Docker Compose for local development
+* WebSocket support where real-time features genuinely require it
+The application must not require optional services to be configured just to start its core functionality.
+Do not create TypeScript files. Do not use .ts or .tsx. Do not convert the project to TypeScript. Use .js and .jsx for application code.
+Use compatible, stable package versions. Check current official documentation when package versions or APIs are uncertain, and commit the lockfile.
+2. Repository structure
+Create exactly two primary application folders at the repository root:
+crm-saas/ frontend/ backend/
+You may create root-level configuration and documentation files in addition to these two folders.
+The root should contain:
+* README.md
+* package.json
+* package-lock.json
+* .gitignore
+* .editorconfig
+* .env.example, or separate environment examples for the two applications
+* docker-compose.yml where appropriate
+* docs/
+Create and maintain a clear and scalable internal directory structure inside both frontend and backend.
+3. Architecture requirements
+Build a modular monolith initially, with clear module boundaries so individual services can be extracted later if necessary. Do not introduce microservices without a demonstrated need.
+Backend architecture
+Use a proper MVC structure combined with a service layer.
+Organize backend modules around:
+* config/
+* database/
+* migrations/
+* seeders/
+* models/
+* modules/
+* controllers/
+* services/
+* repositories/ where they provide real value
+* routes/
+* middleware/
+* validators/
+* policies/
+* integrations/
+* jobs/
+* events/
+* utils/
+* errors/
+* logging/
+* tests/
+Every module must keep its responsibilities separate.
+Controllers should handle HTTP input/output and delegate business logic to services. Services should contain business logic. Models should define Sequelize relationships and schema behavior. Validators must validate all untrusted input before business operations.
+Avoid massive controllers, duplicated business logic, circular imports, and one giant route file.
+Use a consistent API response format, error handling strategy, pagination structure, and logging format.
+Frontend architecture
+Organize the React application using feature-based modules.
+Include:
+* app/
+* routes/
+* layouts/
+* components/
+* features/
+* hooks/
+* services/
+* api/
+* context/
+* permissions/
+* utils/
+* validators/
+* styles/
+* assets/
+* tests/
+Keep reusable UI components separate from business-specific components.
+Separate API calls, business state, form validation, permission-aware rendering, and presentation logic.
+Use a shared API client with centralized error handling, authentication handling, request cancellation where appropriate, and consistent loading behavior.
+4. Multi-tenant database architecture
+Use a shared MySQL database with shared tables for tenant-owned business data.
+Do not create a separate database for every company.
+The design must support multiple companies using the same application while keeping their data completely isolated.
+Core tenant architecture
+Design and document tables such as:
+* tenants
+* tenant_domains
+* users
+* tenant_memberships
+* roles
+* permissions
+* role_permissions
+* user_roles or membership_roles
+* tenant_settings
+* tenant_subscriptions
+* tenant_usage
+* audit_logs
+* feature_flags
+* integration_connections
+Choose the exact relationships based on a documented, normalized database design.
+A user may belong to one or more tenants, with separate permissions and roles for each membership.
+Provide tenant-specific configuration for branding, locale, timezone, currency, fiscal year, pipelines, workflow rules, security policies, and enabled modules.
+Mandatory tenant-isolation rules
+1. Every tenant-owned business record must contain a non-null tenant_id.
+2. Every relevant query must be scoped to the authenticated tenant.
+3. Derive the active tenant from verified authentication, membership, and trusted tenant-resolution logic. Never trust an arbitrary tenant_id from a request body or query string.
+4. Do not accept an unverified X-Tenant-ID header as authorization.
+5. Enforce tenant boundaries in the backend service and data-access layers, not only in React.
+6. Use tenant-aware foreign keys, unique constraints, and indexes where appropriate.
+7. Add tenant-aware pagination, exports, reports, background jobs, file access, search, caching, and webhook processing.
+8. Prevent users from accessing another tenant's records by changing record IDs in URLs.
+9. Scope cache keys, object-storage access, and generated download links to the correct tenant.
+10. Prevent cross-tenant data leakage through logs, notifications, email delivery, analytics, and exports.
+11. Implement automated tests that attempt cross-tenant access to every sensitive module.
+12. Provide a separate, explicitly authorized platform-superadmin access model with audit logging.
+Design a centralized tenant-context middleware and a reusable tenant-scoped data-access strategy. Avoid relying on developers remembering to add tenant_id manually to every individual query.
+Document the limitations of a shared-database model and how it can be scaled or migrated to dedicated databases for selected enterprise tenants in the future.
+5. Authentication and security
+Implement a production-oriented authentication and authorization foundation.
+Include:
+* User registration and tenant onboarding
+* Secure login and logout
+* Password hashing using a modern, appropriately configured password-hashing algorithm
+* Email verification
+* Password reset with expiring, single-use tokens
+* Refresh-token rotation and revocation
+* Session and device management
+* Optional MFA
+* Login attempt limits and rate limiting
+* Account lockout or throttling policies
+* Secure cookie configuration when cookie-based authentication is used
+* CSRF defenses where applicable
+* Secure password and account-recovery workflows
+* Invitation-based user onboarding
+* Tenant membership validation
+* Security event logging
+* Configurable session expiry
+* Optional SSO integration architecture
+Never store plaintext passwords, authentication tokens, API secrets, or refresh tokens unnecessarily.
+Do not store long-lived access tokens in localStorage. Prefer a secure authentication design using HttpOnly, Secure, and appropriate SameSite cookies, with CSRF protections where needed.
+Implement:
+* Helmet security headers
+* Strict configurable CORS
+* Input validation and output encoding
+* SQL injection defenses using Sequelize and safe query construction
+* XSS defenses
+* SSRF protections for features that fetch external URLs
+* Request-size limits
+* File-type, file-size, and upload-content validation
+* Secure HTTP error handling
+* Secrets management via environment variables or a secret manager
+* Redaction of sensitive information in logs
+* Dependency auditing
+* Protection against mass assignment and unauthorized property updates
+Do not expose stack traces, SQL errors, secrets, or internal system details to API consumers.
+Use the current OWASP Top 10 and OWASP Application Security Verification Standard as security references. Map important requirements to actual code and tests instead of merely listing security practices.
+6. Role-based access control (RBAC)
+Build a fully configurable, database-driven RBAC system.
+Do not hardcode permissions independently into every controller.
+Support:
+* Platform superadmin
+* Tenant owner
+* Tenant administrator
+* Sales manager
+* Sales representative
+* Marketing user
+* Customer support agent
+* Read-only user
+* Custom tenant-defined roles
+Allow authorized administrators to create roles, rename roles, assign permissions, clone roles, and disable roles safely.
+Permissions must cover:
+* Module access
+* Create
+* Read
+* Update
+* Delete
+* Import
+* Export
+* Approve
+* Assign
+* Share
+* Manage settings
+* Manage integrations
+* Manage users and roles
+Add record-level access policies for ownership, teams, territories, and other applicable organizational structures.
+Where required, support field-level restrictions for sensitive CRM data.
+Create a permission-management UI with clear permission groups, module-level toggles, action-level controls, and a permission matrix.
+The backend must enforce authorization on every protected API operation. Hiding buttons or pages in React is not authorization.
+Include automated tests for role escalation, missing permissions, record-level restrictions, field-level restrictions, and tenant boundaries.
+7. Configurable custom-field framework
+Custom fields are a mandatory platform capability, not an optional extra.
+Authorized tenant administrators must be able to add custom fields to supported CRM entities without manually changing database schemas or redeploying the application.
+Support custom fields for:
+* Leads
+* Contacts
+* Accounts
+* Opportunities
+* Activities
+* Support tickets
+* Other suitable modules
+Field types must include:
+* Short text
+* Long text
+* Integer
+* Decimal
+* Currency
+* Percentage
+* Boolean
+* Date
+* Date and time
+* Single select
+* Multi-select
+* Email
+* Phone
+* URL
+* User reference
+* File reference where appropriate
+Field configuration must support:
+* Label and internal key
+* Field type
+* Required or optional
+* Default value
+* Validation rules
+* Minimum and maximum values
+* Character limits
+* Select options
+* Display order
+* Visibility and permissions
+* Searchability and filtering
+* List-column visibility
+* Form-layout configuration
+* Applicable entity type
+* Active/inactive state
+* Safe handling of removed fields and existing values
+Build a reusable dynamic form renderer and custom-field administration interface.
+Validate custom field definitions and field values in the backend. Treat custom-field configuration as untrusted input.
+Choose and document a storage design that balances extensibility, referential integrity, reporting, and query performance. Do not blindly place every custom field in an unindexed JSON blob or generate a new SQL column for every field.
+Support custom-field values in relevant forms, detail pages, tables, filters, imports, exports, and API responses.
+8. Core CRM modules
+Design these modules as a connected application, not a collection of unrelated CRUD screens.
+A. Dashboard and executive overview
+* Role-specific dashboards
+* Sales KPIs
+* Lead conversion
+* Pipeline value
+* Revenue and win rates
+* Upcoming activities
+* Overdue tasks
+* Recent customer activity
+* Salesperson performance
+* Date, team, owner, and pipeline filters
+B. Lead management
+* Lead capture
+* Manual entry and bulk import
+* Assignment and reassignment
+* Lead sources
+* Lead status and qualification
+* Lead scoring
+* Duplicate detection
+* Lead conversion
+* Lead ownership history
+* Follow-up reminders
+* Custom fields
+C. Contacts and companies/accounts
+* Contact management
+* Account management
+* Contact-to-account relationships
+* Multiple contacts per account
+* Parent-child account relationships
+* Account activity timeline
+* Related opportunities and tickets
+* Notes, files, and communication history
+* Duplicate identification and controlled merging
+D. Opportunities and sales pipeline
+* Configurable sales pipelines
+* Custom stages
+* Stage transitions
+* Deal value and currency
+* Probability and expected close date
+* Sales owner and team
+* Products and line items where relevant
+* Kanban board
+* Table view
+* Deal history
+* Win/loss reasons
+* Sales forecast
+* Stalled-deal alerts
+E. Activities and productivity
+* Tasks
+* Calls
+* Meetings
+* Notes
+* Reminders
+* Follow-up scheduling
+* Calendar integration architecture
+* Activity timeline
+* Recurring tasks
+* Overdue activity alerts
+* Assignment and completion history
+F. Products, quotes, and proposals
+* Product catalogue
+* Categories
+* Pricing
+* Discount rules
+* Quote creation
+* Quote versioning
+* Proposal templates
+* PDF generation
+* Approval workflows
+* Quote expiry and status tracking
+Keep financial calculations server-side and use correct decimal precision and currency handling.
+G. Marketing and lead acquisition
+* Campaigns
+* Campaign sources
+* Customer and lead segments
+* Public lead capture forms
+* Form builder
+* Campaign attribution
+* Consent tracking
+* Unsubscribe handling
+* Marketing integration interfaces
+H. Customer service and support
+* Support tickets
+* Ticket categories and priorities
+* Status and assignment
+* Internal notes
+* Customer communication history
+* Configurable SLA policies
+* Escalations
+* Response-time tracking
+* Ticket-to-account and ticket-to-contact relationships
+I. Workflow automation
+* Triggers
+* Conditions
+* Actions
+* Scheduled workflows
+* Assignment rules
+* Follow-up creation
+* Notifications
+* Approval workflows
+* Retry handling
+* Execution history
+* Failure reporting
+Do not allow tenant administrators to run arbitrary server-side JavaScript through automation rules.
+J. Communication and notifications
+* In-app notifications
+* Email integration
+* Notification preferences
+* Templates
+* Delivery status
+* Retry handling
+* Optional SMS and WhatsApp integrations
+* Activity records for customer communications
+* Communication consent and opt-out enforcement
+K. Reporting and analytics
+* Saved reports
+* Configurable filters
+* Date ranges
+* Team and owner filters
+* Sales funnel
+* Conversion rates
+* Pipeline reports
+* Forecasting
+* Activity reports
+* CSV exports
+* Dashboard widgets
+* Scheduled report architecture
+Ensure every report, export, and aggregate is tenant-scoped and permission-aware.
+L. Search, import, and export
+* Global search
+* Filters and sorting
+* Saved views
+* CSV import with field mapping
+* Import preview
+* Validation errors by row
+* Duplicate detection
+* Import history
+* Export with permission checks
+* Safe bulk updates
+* Large-file processing through background jobs where necessary
+M. Files and documents
+* Attachments on supported entities
+* File metadata
+* Access-control checks
+* Secure download URLs
+* File-size and file-type restrictions
+* Configurable object-storage integration
+* Retention and deletion policies
+N. SaaS administration
+* Tenant creation and onboarding
+* Company branding
+* Tenant configuration
+* User and seat management
+* Feature entitlements
+* Usage limits
+* Subscription and plan architecture
+* Usage metering
+* Tenant suspension and reactivation
+* Integration settings
+* Platform health overview
+Implement billing provider adapters rather than assuming credentials are available.
+O. Audit logs and compliance
+* Login and security events
+* Data creation and modification events
+* Role and permission changes
+* Export events
+* Integration changes
+* Administrative actions
+* Record-access events where appropriate
+* Configurable retention
+* Sensitive-field redaction
+* Audit-log access controls
+Audit logs should not be editable through normal tenant CRUD endpoints.
+9. Integration framework
+Create an integration centre with a common adapter architecture.
+Plan support for:
+* Google Workspace
+* Microsoft 365
+* Google Calendar
+* Microsoft Outlook Calendar
+* Gmail and Microsoft email services
+* SMTP
+* Amazon SES, SendGrid, or Mailgun
+* Twilio
+* WhatsApp Business providers
+* Slack
+* Zoom
+* Stripe or Razorpay for optional subscription billing
+* S3-compatible object storage
+* External lead-generation forms
+* REST API access
+* Incoming and outgoing webhooks
+These are integration targets, not permission to pretend external services are already connected.
+For each integration, provide:
+* Provider adapter
+* Configuration schema
+* Secure credential handling
+* Connection-status UI
+* Connection test
+* Required environment variables
+* Error handling
+* Retry policy where appropriate
+* Rate-limit handling
+* Logging and redaction
+* Documentation
+* Tests using mocks or sandbox credentials
+Without valid credentials, the UI must clearly display that configuration is required. Never report a fake successful connection or silently simulate a production integration.
+Do not make paid third-party integrations mandatory for the core CRM to run.
+API keys and webhooks
+Implement:
+* Versioned REST endpoints
+* API key creation, revocation, expiration, and scopes
+* Secure API-key storage using hashes where applicable
+* Per-key and tenant-level rate limits
+* Webhook registration
+* Webhook signing and signature verification
+* Delivery history
+* Retry scheduling
+* Idempotency protection
+* Duplicate-event handling
+* API documentation and example requests
+10. REST API conventions
+Use an API namespace such as /api/v1.
+For each module provide:
+* Routes
+* Controllers
+* Services
+* Models
+* Validators
+* Authorization policies
+* Error handling
+* Tests
+* API documentation
+Use consistent HTTP status codes and response formats.
+Implement:
+* Filtering
+* Sorting
+* Pagination
+* Search
+* Request validation
+* Appropriate transaction boundaries
+* Idempotency for operations that require it
+* Optimistic concurrency controls when appropriate
+* Rate limiting
+* Consistent audit events
+Generate OpenAPI documentation and keep it aligned with implemented endpoints.
+Do not expose internal database columns, password hashes, tokens, or confidential properties through serializers.
+11. Database and performance engineering
+Use Sequelize migrations as the source of truth for schema changes.
+Do not rely on sequelize.sync({ force: true }) or destructive synchronization in production.
+Requirements:
+* Appropriate primary and foreign keys
+* Tenant-aware composite indexes
+* Unique constraints
+* Query-efficient associations
+* Transactions for multi-step business operations
+* Safe pagination
+* N+1 query prevention
+* Select only required columns
+* Explicit query limits
+* Connection pooling
+* Index design based on actual access patterns
+* Efficient dashboard aggregates
+* Background processing for expensive work
+* Database query logging suitable for diagnostics
+* Slow-query investigation guidance
+* Backup and restore instructions
+Avoid loading thousands of records into the frontend to implement search or pagination.
+Use Redis caching only where it provides measured value. Tenant IDs and relevant permission context must be incorporated into cache keys and invalidation logic.
+Document expected scalability limits and performance-test the important endpoints.
+12. Professional UI/UX requirements
+Build a polished, modern enterprise SaaS experience.
+Use established CRM applications as general UX references, such as HubSpot, Salesforce, Pipedrive, and Attio. Use their general interaction patterns for inspiration; do not copy their branding or proprietary visual design.
+Create a new consistent design system for this product.
+Main application shell
+* Collapsible sidebar
+* Clear navigation groups
+* Top navigation and search
+* Tenant and user menus
+* Breadcrumbs
+* Notifications
+* Profile and settings
+* Responsive layouts
+* Consistent page headers and actions
+Reusable UI components
+* Data tables
+* Server-side pagination
+* Column chooser
+* Filters
+* Saved views
+* Search inputs
+* Status badges
+* Modal dialogs
+* Drawers
+* Tabs
+* Tooltips
+* Dropdowns
+* Form controls
+* Date pickers
+* Confirmation dialogs
+* Toasts
+* Skeleton loaders
+* Empty states
+* Error states
+* Loading states
+Important screens
+* Login and onboarding
+* Executive dashboard
+* Lead list and lead details
+* Contact profile
+* Account profile
+* Pipeline Kanban board
+* Opportunity details
+* Activity timeline
+* Custom-field builder
+* Role and permission management
+* Workflow builder
+* Integration centre
+* Reports and analytics
+* Tenant settings
+* Platform administration
+The contact and account detail pages should feel like complete 360-degree customer workspaces, combining contact information, custom fields, related records, activities, notes, files, communications, and history.
+Use consistent typography, spacing, colors, icons, chart styles, and form layouts.
+Include accessibility, keyboard navigation, clear validation feedback, mobile responsiveness, and appropriate contrast.
+Do not build only a dashboard screenshot. Every visible action should work, or be clearly marked as not yet implemented.
+Create docs/UI_UX_REFERENCE.md describing the design direction, component standards, layout rules, screen references, and implementation decisions.
+13. Testing requirements
+Configure an automated testing strategy appropriate for the stack.
+Include:
+* Unit tests
+* Service-layer tests
+* API integration tests
+* Authentication and authorization tests
+* Tenant-isolation tests
+* Custom-field validation tests
+* Database migration tests
+* Integration-adapter tests
+* Frontend component tests
+* End-to-end tests for critical business journeys
+* Basic performance tests
+Critical end-to-end scenarios must cover:
+1. A company signs up and creates a tenant.
+2. The company administrator invites a user.
+3. The administrator creates a custom role.
+4. The administrator assigns permissions.
+5. The user creates a lead.
+6. The user converts the lead into a contact, account, and opportunity where applicable.
+7. The user moves an opportunity through pipeline stages.
+8. The system records the activity timeline and audit events.
+9. The user generates a report.
+10. A different tenant attempts to access the same records and is denied.
+Test negative cases, not only successful flows.
+Fix failing tests and build errors instead of merely reporting them.
+14. Documentation deliverables
+Create complete, maintained documentation:
+* README.md
+* docs/PRODUCT_REQUIREMENTS.md
+* docs/FEATURE_MATRIX.md
+* docs/SYSTEM_ARCHITECTURE.md
+* docs/DATABASE_SCHEMA.md
+* docs/DATABASE_ERD.md
+* docs/MULTI_TENANCY.md
+* docs/SECURITY.md
+* docs/RBAC.md
+* docs/CUSTOM_FIELDS.md
+* docs/API_GUIDE.md
+* docs/OPENAPI.md
+* docs/INTEGRATIONS.md
+* docs/WORKFLOWS.md
+* docs/UI_UX_REFERENCE.md
+* docs/TESTING.md
+* docs/DEPLOYMENT.md
+* docs/BACKUP_RESTORE.md
+* docs/TROUBLESHOOTING.md
+* docs/DEVELOPMENT_GUIDE.md
+* docs/RELEASE_NOTES.md
+Document environment variables, setup instructions, migrations, seeders, API examples, test commands, architecture decisions, security boundaries, known limitations, and production deployment requirements.
+Add an architecture diagram and database entity-relationship diagram using Mermaid where useful.
+Maintain a traceable relationship between requirements, implemented modules, API routes, and tests.
+15. Development and configuration requirements
+Provide:
+* Root development commands
+* Frontend and backend development commands
+* Environment-variable validation
+* Database creation instructions
+* Migration and seeding commands
+* Local development configuration
+* A safe development seed process
+* Demo data that does not contain real customer information
+* Example API requests
+* Linting and testing commands
+* Production build commands
+Never commit real credentials.
+Never create a publicly accessible default administrator account with a hardcoded production password.
+If development seed credentials are needed, read them from environment variables, clearly label them as development-only, and document how to change them.
+Use graceful shutdown and appropriate health/readiness endpoints.
+16. Mandatory implementation workflow
+Do not stop after generating a plan or a collection of empty files.
+Follow this sequence.
+Phase 1: Inspect and plan
+Inspect the existing VS Code workspace. Preserve existing work unless changes are necessary and documented.
+Identify existing files, dependencies, and project conventions.
+Create the product requirements, feature matrix, architecture plan, tenant model, database ERD, UI/UX reference, and implementation checklist.
+Record significant architectural decisions.
+Phase 2: Foundation
+Set up the root workspace, frontend, backend, environment configuration, logging, error handling, database connection, migrations, test infrastructure, and basic UI design system.
+Make sure the application can start.
+Phase 3: Identity and tenant isolation
+Implement tenant onboarding, users, memberships, authentication, tenant context, RBAC, security middleware, migrations, and tenant-isolation tests.
+Do not begin broad business-module implementation until these foundational boundaries are established and tested.
+Phase 4: First end-to-end CRM workflow
+Implement leads, contacts, accounts, opportunities, activities, custom fields, relevant UI screens, API endpoints, validation, authorization, and automated tests.
+Make the primary sales workflow genuinely functional before expanding.
+Phase 5: Remaining core modules
+Implement the remaining core CRM modules in logical dependency order, using complete vertical slices that include database schema, backend logic, frontend integration, permissions, tests, and documentation.
+Phase 6: Integrations, automation, and reporting
+Add the integration framework, workflow engine, search, reporting, notifications, imports/exports, and tenant administration.
+Phase 7: Production readiness
+Run the test suite, linting, frontend build, migration checks, tenant-isolation tests, API security checks, and essential performance tests.
+Fix issues where possible and document anything that genuinely remains incomplete.
+17. Rules you must follow
+* Build actual working features, not just placeholder screens.
+* Do not mark a feature complete unless the necessary frontend, backend, database, authorization, and tests are implemented.
+* Never bypass tenant isolation for convenience.
+* Never trust client-side permissions.
+* Do not duplicate business logic across controllers.
+* Do not use TypeScript.
+* Do not hardcode secrets, passwords, tenant IDs, or production endpoints.
+* Do not silently swallow errors.
+* Do not install unnecessary dependencies.
+* Do not make optional paid services mandatory.
+* Do not rewrite working modules without a clear reason.
+* Do not generate arbitrary files without a clear architectural purpose.
+* Maintain a clear separation between implemented, partially implemented, and planned features.
+Keep a persistent implementation checklist in docs/IMPLEMENTATION_STATUS.md. Update it whenever a phase is completed.
+After each phase, execute relevant tests and build commands, fix errors, summarize the files changed, show how to run the application, and identify the next concrete implementation task.
+If the entire project cannot reasonably be completed in one execution, preserve the working code and continue through the checklist in the next execution. Do not sacrifice security, tenant isolation, or code quality simply to claim that all modules are finished.
+18. Start now
+Begin by inspecting the workspace, then create the requirements and architecture documents and establish the project foundation.
+Proceed to implementation rather than returning only a proposal.
+The final target is a secure, performant, well-documented, configurable, multi-tenant CRM SaaS that can be developed further and sold to different companies.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Next
+Continue implementing the existing CRM SaaS project from the current workspace.
+First read docs/IMPLEMENTATION_STATUS.md, docs/PRODUCT_REQUIREMENTS.md, and the relevant architecture documentation. Inspect the actual code and test results before deciding what is complete.
+Select the highest-priority unfinished feature from the implementation checklist and implement it end to end.
+For that feature, complete the database migrations, Sequelize models, services, controllers, API routes, validation, tenant isolation, RBAC, React UI, integration with the API client, loading/error/empty states, automated tests, and documentation as applicable.
+Run the relevant tests, lint checks, and build commands. Fix failures caused by your changes.
+Do not regenerate the project, replace working modules, create another folder structure, or return only a plan. Update docs/IMPLEMENTATION_STATUS.md with accurate completion status and the next concrete task.
+Continue from the existing codebase and make measurable implementation progress in this execution.

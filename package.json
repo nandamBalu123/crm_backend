@@ -1,0 +1,61 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "description": "CRM SaaS API (Express + Sequelize + MySQL)",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "dev:ephemeral": "node scripts/dev-ephemeral.js",
+    "start": "node src/server.js",
+    "worker": "node src/worker.js",
+    "db:create": "node scripts/db-create.js",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:migrate:status": "sequelize-cli db:migrate:status",
+    "db:seed": "sequelize-cli db:seed:all",
+    "platform:grant-admin": "node scripts/grant-platform-admin.js",
+    "openapi:export": "node scripts/export-openapi.js",
+    "lint": "eslint .",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:perf": "node scripts/perf.js"
+  },
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "dependencies": {
+    "argon2": "^0.45.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "csv-parse": "^7.0.3",
+    "csv-stringify": "^6.9.0",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
+    "mysql2": "^3.24.6",
+    "nodemailer": "^10.2.1",
+    "pdfkit": "^0.20.2",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "mysql-memory-server": "^1.18.0",
+    "pino-pretty": "^13.2.0",
+    "supertest": "^7.3.1"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20.19"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}
